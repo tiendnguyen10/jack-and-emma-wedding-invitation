@@ -1,0 +1,375 @@
+/* =====================================================================
+   Jack & Emma — Wedding Invitation
+   style.css
+   Sections:
+     1. Variables
+     2. Page + stage (keeps the PNG aspect ratio, never stretched)
+     3. Pages and page-to-page transitions
+     4. Hotspots (invisible clickable areas on top of the PNGs)
+     5. Welcome page (entrance animation + petals)
+     6. Countdown
+     7. Our Story book (3D page turning)
+     8. RSVP form
+     9. Small screens
+    10. Accessibility + debug helpers
+   ===================================================================== */
+
+/* ---------- 1. Variables ---------- */
+:root {
+  /* Size of your PNGs. Hotspot numbers are measured on this canvas. */
+  --dw: 1366;
+  --dh: 768;
+
+  --burgundy: #551a25;      /* same colour as the nav bar in your PNGs */
+  --cream: #fdf1de;
+  --gold: #c9993f;
+  --soft-blue: #bcd4ff;     /* highlight colour from your design */
+
+  /* How many screen pixels one PNG pixel occupies. script.js keeps this up to date.
+     We use it to size text and 3D depth so everything scales with the artwork. */
+  --u: 0.5;
+}
+
+/* ---------- 2. Page + stage ---------- */
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--burgundy);
+  overflow: hidden;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The stage is the biggest 1366:768 rectangle that fits the window.
+   Everything inside it is positioned in percentages, so it all scales together. */
+.stage {
+  position: relative;
+  width: min(100vw, calc(100vh * 1366 / 768));
+  width: min(100vw, calc(100dvh * 1366 / 768));
+  aspect-ratio: 1366 / 768;
+  overflow: hidden;
+  background: var(--burgundy);
+}
+
+/* ---------- 3. Pages and transitions ---------- */
+.page {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  /* the page fades out, then becomes invisible */
+  transition: opacity 0.7s ease, visibility 0s linear 0.7s;
+}
+.page.is-active {
+  z-index: 2;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.7s ease, visibility 0s;
+}
+
+.page-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;     /* never crop or stretch the artwork */
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  font-size: 0;            /* hides the alt text / broken-image icon while a PNG is still loading */
+  color: transparent;
+}
+.page-img:not([src]) { visibility: hidden; }
+
+/* ---------- 4. Hotspots ---------- */
+/* Both .hotspot and .overlay are placed using the --x / --y / --w / --h numbers. */
+.hotspot,
+.overlay {
+  position: absolute;
+  left: calc(var(--x) / var(--dw) * 100%);
+  top: calc(var(--y) / var(--dh) * 100%);
+  width: calc(var(--w) / var(--dw) * 100%);
+  height: calc(var(--h) / var(--dh) * 100%);
+}
+
+.hotspot {
+  display: block;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: calc(var(--r, 12) * var(--u) * 1px);
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+.hotspot:hover { background: rgba(188, 212, 255, 0.2); }          /* soft-blue glow */
+.hotspot:focus-visible {
+  outline: 3px solid rgba(120, 165, 255, 0.95);                   /* keyboard focus ring */
+  outline-offset: 2px;
+}
+
+/* The shared navigation sits above every page and is hidden on the welcome page */
+.site-nav {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+.site-nav .hotspot { pointer-events: auto; }
+.stage[data-page="home"] > .site-nav { display: none; }
+
+/* ---------- 5. Welcome page ---------- */
+/* Gentle fade-and-settle when the welcome page appears */
+/* (it starts once the picture has loaded, so slow connections still see it) */
+.page-home .page-img:not(.is-loaded) { opacity: 0; }
+.page-home.is-active .page-img.is-loaded { animation: welcome-in 2.2s cubic-bezier(0.2, 0.6, 0.2, 1) both; }
+@keyframes welcome-in {
+  from { opacity: 0; transform: scale(1.06); filter: blur(8px); }
+  to   { opacity: 1; transform: scale(1);    filter: blur(0); }
+}
+
+/* RSVP button: soft golden glow that breathes */
+.hotspot-rsvp { animation: glow 3.2s ease-in-out 2.4s infinite; }
+.hotspot-rsvp:hover { background: rgba(255, 235, 200, 0.12); }
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 220, 150, 0); }
+  50%      { box-shadow: 0 0 calc(26 * var(--u) * 1px) calc(4 * var(--u) * 1px) rgba(255, 220, 150, 0.55); }
+}
+
+/* Falling rose petals (created by script.js) */
+.petals { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.petal {
+  position: absolute;
+  top: -8%;
+  width: calc(var(--s) * var(--u) * 1px);
+  height: calc(var(--s) * 1.4 * var(--u) * 1px);
+  background: radial-gradient(ellipse at 30% 30%, #f7b9c4, #c64a63 80%);
+  border-radius: 80% 0 80% 0;
+  opacity: 0;
+  animation: petal-fall var(--t) linear var(--d) infinite;
+}
+.page:not(.is-active) .petal { animation-play-state: paused; }
+@keyframes petal-fall {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg);                        opacity: 0; }
+  10%  { opacity: 0.85; }
+  90%  { opacity: 0.85; }
+  100% { transform: translate3d(var(--drift), 115vh, 0) rotate(540deg);       opacity: 0; }
+}
+
+/* ---------- 6. Countdown ---------- */
+.cd-digit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Solid patch the same colour as the painted box. It hides the "00" in the PNG
+     and its soft edge blends into the box. */
+  background: #62191a;
+  box-shadow: 0 0 calc(7 * var(--u) * 1px) calc(4 * var(--u) * 1px) #62191a;
+  color: #f7eee6;
+  font-size: calc(35 * var(--u) * 1px);
+  font-weight: 500;
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+.cd-digit.is-long { font-size: calc(28 * var(--u) * 1px); }   /* 3-digit day counts */
+
+/* ---------- 7. Our Story: the 3D book ---------- */
+.book {
+  position: absolute;
+  inset: 0;
+  perspective: calc(3200 * var(--u) * 1px);   /* gentle perspective = realistic but not dramatic */
+  perspective-origin: 50% 52%;
+  touch-action: pan-y;                         /* lets us detect left/right swipes */
+}
+
+/* The five full spreads (PNG 3–7). Only the current one is visible. */
+.book-spread { position: absolute; inset: 0; visibility: hidden; }
+.book-spread.is-current { visibility: visible; }
+
+/* A box that is exactly the size of one page of the book */
+.book-box {
+  position: absolute;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.book-box.leaf { will-change: transform; }
+
+/* One side of a page. It contains a copy of the PNG, clipped to the paper shape,
+   so the flowers around the book are never part of the turning page. */
+.face {
+  position: absolute;
+  inset: 0;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.face img {
+  position: absolute;
+  max-width: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.face-back { transform: rotateY(180deg); }
+
+/* Shadow layers (opacity is animated by script.js) */
+.shade { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+.cast  { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+
+/* Arrows: end-of-book state. The art is baked into the PNG, so we dim it with a soft veil. */
+.book-arrow[disabled] { cursor: default; background: none; }
+.book-arrow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(ellipse closest-side, rgba(246, 234, 214, 0.72) 55%, rgba(246, 234, 214, 0) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.book-arrow[disabled]::after { opacity: 1; }
+
+/* ---------- 8. RSVP form ---------- */
+.rsvp-frame {
+  background: #fdf0dc;           /* same cream as the card, shown while the form loads */
+  overflow: hidden;
+  border-radius: calc(4 * var(--u) * 1px);
+}
+.rsvp-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+}
+.rsvp-frame iframe[hidden] { display: none; }
+
+.rsvp-placeholder {
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 6%;
+  color: #7a1d2b;
+  font-size: clamp(11px, calc(19 * var(--u) * 1px), 22px);
+  line-height: 1.5;
+}
+.rsvp-placeholder[hidden] { display: none; }
+.rsvp-placeholder small { color: #8a6a4a; font-size: 0.78em; }
+.rsvp-placeholder code { background: rgba(122, 29, 43, 0.08); padding: 0 4px; border-radius: 3px; }
+
+.rsvp-open-btn { display: none; }   /* only shown on small screens, see section 9 */
+
+/* Full-screen form (phones) */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  background: #fdf0dc;
+}
+.modal[hidden] { display: none; }
+.modal iframe { flex: 1; width: 100%; border: 0; }
+.modal iframe[hidden] { display: none; }
+.modal .rsvp-placeholder { font-size: 17px; }
+.modal-close {
+  align-self: flex-end;
+  margin: 10px;
+  padding: 8px 16px;
+  font: 600 15px "Playfair Display", Georgia, serif;
+  color: #fdf1de;
+  background: var(--burgundy);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+/* ---------- 9. Small screens ---------- */
+/* script.js adds .is-small when the stage is narrower than ~820px. */
+
+body.is-small .rsvp-frame iframe,
+body.is-small .rsvp-frame .rsvp-placeholder { display: none; }
+body.is-small .rsvp-frame {
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+body.is-small .rsvp-open-btn {
+  display: block;
+  padding: 10px 18px;
+  font: 600 14px "Playfair Display", Georgia, serif;
+  color: #fdf1de;
+  background: var(--burgundy);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(85, 26, 37, 0.35);
+  cursor: pointer;
+}
+
+/* ---------- 9b. Upright screens: scroll down instead of tabs ----------
+   When the screen is taller than it is wide (a phone held upright) there is no room for the
+   16:9 picture without big empty bars. So script.js adds body.is-stacked and the pages are simply
+   placed one under the other at full width. Nothing is zoomed, cropped or restyled. */
+html.is-stacked,
+html.is-stacked body { height: auto; overflow-y: auto; }
+body.is-stacked { display: block; }
+body.is-stacked .stage {
+  width: 100%;
+  height: auto;
+  aspect-ratio: auto;
+  overflow: visible;
+}
+body.is-stacked .page {
+  position: relative;
+  inset: auto;
+  aspect-ratio: 1366 / 768;
+  opacity: 1;
+  visibility: visible;
+  transition: none;
+  scroll-margin-top: 0;
+  overflow: hidden;
+}
+body.is-stacked .page.is-active .page-img { animation: none; }
+body.is-stacked .page-home .page-img:not(.is-loaded) { opacity: 0; }
+body.is-stacked .site-nav:not(.page-nav) { display: none; }   /* the shared nav is for the tabbed view */
+body.is-stacked .page-nav { position: absolute; inset: 0; }
+
+/* Fingers are bigger than the tiny painted buttons, so make the tap areas a little taller */
+body.is-stacked .hotspot::before { content: ""; position: absolute; inset: -10px -4px; }
+
+/* ---------- 10. Accessibility + debug helpers ---------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.noscript { position: fixed; inset: 0; display: grid; place-items: center; color: var(--cream); background: var(--burgundy); margin: 0; }
+
+/* Add ?debug to the address to see every hotspot outlined in red */
+body.debug .hotspot,
+body.debug .overlay { outline: 2px dashed rgba(255, 40, 40, 0.9); background: rgba(255, 40, 40, 0.12); }
+
+/* If someone prefers less motion we skip the decorative animation */
+@media (prefers-reduced-motion: reduce) {
+  .page, .page.is-active { transition-duration: 0.01s; }
+  .page-home.is-active .page-img, .hotspot-rsvp, .petal { animation: none; }
+  .petals { display: none; }
+}

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Jack &amp; Emma — Wedding Invitation</title>
+  <meta name="description" content="You are invited to the wedding of Jack and Emma — April 28, 2028.">
+  <meta name="theme-color" content="#551a25">
+
+  <!-- Playfair Display is only used for the countdown numbers (it matches the font in your PNG).
+       If the font can't load, the site falls back to Georgia and still works. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!--
+    HOW THIS PAGE IS BUILT
+    ----------------------
+    Your 10 PNG designs are the visual foundation. Each one is an <img> that fills the "stage".
+    On top of the images we place INVISIBLE clickable areas called "hotspots".
+
+    A hotspot is positioned with four numbers measured in the original 1366 x 768 PNG:
+        --x  = distance from the left edge     --y = distance from the top edge
+        --w  = width                           --h = height
+    CSS converts these numbers into percentages, so the hotspots stay perfectly
+    aligned with the artwork at every screen size. (Add ?debug to the URL to see them.)
+  -->
+
+  <div class="stage" id="stage" data-page="home">
+
+    <!-- ============ PAGE 1 — WELCOME (PNG 1) ============ -->
+    <section class="page page-home" id="page-home" data-page="home" aria-label="Welcome">
+      <img class="page-img" data-image="home" alt="Save the Date — Jack and Emma" fetchpriority="high" decoding="async">
+      <div class="petals" id="petals" aria-hidden="true"></div>
+      <!-- The RSVP button that is painted on PNG 1 -->
+      <a class="hotspot hotspot-rsvp" href="#rsvp" aria-label="RSVP"
+         style="--x:536; --y:585; --w:302; --h:77; --r:40"></a>
+    </section>
+
+    <!-- ============ PAGE 2 — DETAILS + COUNTDOWN (PNG 2) ============ -->
+    <section class="page" id="page-details" data-page="details" aria-label="Wedding details" aria-hidden="true" inert>
+      <img class="page-img" data-image="details" alt="Come join us April 28, 2028" decoding="async">
+
+      <!-- Each .cd-digit covers the painted "00" and shows the live number instead. -->
+      <div class="countdown" id="countdown" role="timer" aria-label="Countdown to the wedding">
+        <div class="overlay cd-digit" data-unit="days"    style="--x:200;   --y:513; --w:60; --h:40"></div>
+        <div class="overlay cd-digit" data-unit="hours"   style="--x:285.5; --y:513; --w:60; --h:40"></div>
+        <div class="overlay cd-digit" data-unit="minutes" style="--x:375.5; --y:513; --w:60; --h:40"></div>
+        <div class="overlay cd-digit" data-unit="seconds" style="--x:462.5; --y:513; --w:60; --h:40"></div>
+      </div>
+    </section>
+
+    <!-- ============ PAGES 3–7 — OUR STORY: INTERACTIVE BOOK (PNGs 3–7) ============ -->
+    <section class="page page-story" id="page-story" data-page="story" aria-label="Our story" aria-hidden="true" inert>
+      <!-- script.js fills this with the five spreads and the page-turn layers -->
+      <div class="book" id="book"></div>
+
+      <!-- The two arrows painted on the PNGs -->
+      <button class="hotspot book-arrow" id="book-prev" type="button" aria-label="Previous chapter"
+              style="--x:385; --y:668; --w:118; --h:88; --r:44"></button>
+      <button class="hotspot book-arrow" id="book-next" type="button" aria-label="Next chapter"
+              style="--x:847; --y:668; --w:118; --h:88; --r:44"></button>
+
+      <p class="sr-only" id="book-status" aria-live="polite"></p>
+    </section>
+
+    <!-- ============ PAGE 8 — SCHEDULE (PNG 8) ============ -->
+    <section class="page" id="page-schedule" data-page="schedule" aria-label="Wedding schedule" aria-hidden="true" inert>
+      <img class="page-img" data-image="schedule" alt="The Grand Celebration — wedding schedule: 8 AM ceremony, 4 PM cocktail hour, 6 PM dinner, 8 PM first dance and cake, 10 PM dancing" decoding="async">
+    </section>
+
+    <!-- ============ PAGE 9 — LOCATION (PNG 9) ============ -->
+    <section class="page" id="page-location" data-page="location" aria-label="Wedding location" aria-hidden="true" inert>
+      <img class="page-img" data-image="location" alt="Wedding location" decoding="async">
+      <!-- Invisible link over the venue name + address. href is filled in from script.js -->
+      <a class="hotspot hotspot-map" id="map-link" href="#location" target="_blank" rel="noopener"
+         aria-label="Open the venue in Google Maps" title="Open in Google Maps"
+         style="--x:520; --y:418; --w:380; --h:80; --r:16"></a>
+    </section>
+
+    <!-- ============ PAGE 10 — RSVP + GOOGLE FORM (PNG 10) ============ -->
+    <section class="page" id="page-rsvp" data-page="rsvp" aria-label="RSVP" aria-hidden="true" inert>
+      <img class="page-img" data-image="rsvp" alt="RSVP" decoding="async">
+
+      <!-- The blank area inside the gold border where the Google Form goes -->
+      <div class="overlay rsvp-frame" id="rsvp-frame" style="--x:538; --y:312; --w:326; --h:290">
+        <iframe id="rsvp-iframe" title="RSVP form" hidden></iframe>
+
+        <!-- Shown until you paste your real Google Form link -->
+        <p class="rsvp-placeholder" id="rsvp-placeholder" hidden>
+          Your RSVP form will appear here.<br>
+          <small>Add your Google Form link to <code>googleFormUrl</code> in <code>script.js</code>.</small>
+        </p>
+
+        <!-- Small screens: the card is too small for a form, so offer it full-screen instead -->
+        <button class="rsvp-open-btn" id="rsvp-open" type="button">Open RSVP form</button>
+      </div>
+    </section>
+
+    <!-- ============ NAVIGATION (shared by pages 2–10) ============
+         The navigation bar is painted into each PNG (with the active tab highlighted in
+         soft blue), so we only need invisible links on top. They are hidden on the welcome page. -->
+    <nav class="site-nav" aria-label="Main">
+      <a class="hotspot" href="#home"     aria-label="Home (J + E)" style="--x:60;   --y:20; --w:85;  --h:62; --r:10"></a>
+      <a class="hotspot" href="#details"  data-nav="details"  style="--x:537;  --y:16; --w:122; --h:64" aria-label="Details"></a>
+      <a class="hotspot" href="#story"    data-nav="story"    style="--x:680;  --y:16; --w:122; --h:64" aria-label="Our Story"></a>
+      <a class="hotspot" href="#schedule" data-nav="schedule" style="--x:828;  --y:16; --w:122; --h:64" aria-label="Schedule"></a>
+      <a class="hotspot" href="#location" data-nav="location" style="--x:976;  --y:16; --w:122; --h:64" aria-label="Location"></a>
+      <a class="hotspot" href="#rsvp"     data-nav="rsvp"     style="--x:1121; --y:16; --w:122; --h:64" aria-label="RSVP"></a>
+    </nav>
+  </div>
+
+  <!-- Full-screen RSVP form for phones -->
+  <div class="modal" id="rsvp-modal" role="dialog" aria-modal="true" aria-label="RSVP form" hidden>
+    <button class="modal-close" id="rsvp-close" type="button" aria-label="Close RSVP form">&times; Close</button>
+    <iframe id="rsvp-modal-iframe" title="RSVP form (full screen)"></iframe>
+    <p class="rsvp-placeholder" id="rsvp-modal-placeholder" hidden>
+      Your RSVP form will appear here.<br>
+      <small>Add your Google Form link to <code>googleFormUrl</code> in <code>script.js</code>.</small>
+    </p>
+  </div>
+
+  <noscript><p class="noscript">Please enable JavaScript to view this invitation.</p></noscript>
+
+  <script src="script.js"></script>
+</body>
+</html>
