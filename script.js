@@ -172,6 +172,8 @@ function showPage(name) {
     else link.removeAttribute("aria-current");
   });
 
+  updateBackdrop();
+
   document.title = (name === "home" ? "" : capitalize(name === "story" ? "Our Story" : name) + " · ")
                    + CONFIG.coupleNames + " — Wedding Invitation";
 
@@ -181,6 +183,12 @@ function showPage(name) {
   });
 
   if (name === "rsvp") loadRsvpForm();
+}
+
+/* Sets the blurred backdrop (see style.css) to the picture of the page being shown */
+function updateBackdrop() {
+  const path = currentPage === "story" ? CONFIG.images.story[chapter] : CONFIG.images[currentPage];
+  document.documentElement.style.setProperty("--backdrop", `url("${path}")`);
 }
 
 function capitalize(text) { return text.charAt(0).toUpperCase() + text.slice(1); }
@@ -314,6 +322,7 @@ const spreads = CONFIG.images.story.map((_, index) => {
 
 function showSpread(index) {
   spreads.forEach((spread, i) => spread.classList.toggle("is-current", i === index));
+  if (typeof updateBackdrop === "function" && currentPage === "story") updateBackdrop();
 }
 
 /* ----- tiny builders for the temporary page-turn layers ----- */

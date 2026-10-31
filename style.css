@@ -36,9 +36,23 @@
 html, body {
   height: 100%;
   margin: 0;
-  background: var(--burgundy);
   overflow: hidden;
 }
+html { background: var(--burgundy); }
+
+/* If the window is wider (or taller) than 16:9, the picture can't fill it without being cropped.
+   So the empty space around it is filled with a soft, blurred copy of the current page.
+   script.js sets --backdrop to the current page's picture. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -60px;                 /* a little bigger than the window so the blur has no hard edges */
+  z-index: -1;
+  background: var(--backdrop, none) center / cover no-repeat;
+  filter: blur(34px) brightness(0.82) saturate(1.1);
+  pointer-events: none;
+}
+body.is-stacked::before { display: none; }   /* upright screens have no empty space */
 
 body {
   display: grid;

@@ -42,6 +42,11 @@ Upload this whole folder — `index.html` must be at the top level of what you u
 * **GitHub Pages** (used for this repo) — *Settings → Pages → Deploy from a branch → `main` → `/ (root)`*.
 * **Vercel / Cloudflare Pages** — import the folder or repository; no settings needed.
 
+**Sharper pictures:** the PNGs are 1366 × 768, so on large or high-density screens they are enlarged and look
+soft. Re-export your designs at **2732 × 1536 or 3840 × 2160** (same 16:9 shape — in Canva/Figma export at
+2× or 3×), keep the same file names, and drop them into `images/`. No code changes are needed because all
+positions are percentages. At that size use WebP or JPEG (see below) to keep the files small.
+
 **Faster loading:** each PNG is 1–2 MB. For a snappier site, convert them to WebP at <https://squoosh.app>
 (quality ~85), save them in `images/`, and change the file names in `CONFIG.images` in `script.js`.
 
