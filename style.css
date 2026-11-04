@@ -40,20 +40,6 @@ html, body {
 }
 html { background: var(--burgundy); }
 
-/* If the window is wider (or taller) than 16:9, the picture can't fill it without being cropped.
-   So the empty space around it is filled with a soft, blurred copy of the current page.
-   script.js sets --backdrop to the current page's picture. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: -60px;                 /* a little bigger than the window so the blur has no hard edges */
-  z-index: -1;
-  background: var(--backdrop, none) center / cover no-repeat;
-  filter: blur(34px) brightness(0.82) saturate(1.1);
-  pointer-events: none;
-}
-body.is-stacked::before { display: none; }   /* upright screens have no empty space */
-
 body {
   display: grid;
   place-items: center;
@@ -61,13 +47,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* The stage is the biggest 1366:768 rectangle that fits the window.
-   Everything inside it is positioned in percentages, so it all scales together. */
+/* The stage always fills the whole window, so there are never empty bars.
+   Everything inside it is positioned in percentages, so the picture and the buttons stretch together. */
 .stage {
   position: relative;
-  width: min(100vw, calc(100vh * 1366 / 768));
-  width: min(100vw, calc(100dvh * 1366 / 768));
-  aspect-ratio: 1366 / 768;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: var(--burgundy);
 }
@@ -93,7 +79,7 @@ body {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;     /* never crop or stretch the artwork */
+  object-fit: fill;        /* stretch to the window so it reaches every edge */
   display: block;
   user-select: none;
   -webkit-user-drag: none;
